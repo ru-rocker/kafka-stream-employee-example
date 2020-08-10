@@ -46,7 +46,7 @@ Example of joining Kafka Stream with 1:N and N:1 use case.
         
 
 # Create Kafka Topic
-Since this is local setup, the partition and replication factor are set into 1.
+Since this is a local setup, the partition and replication factor is set into 1.
 So no issue about co-partition.
 
 _Remember, for topics to be enable to join, data must  be co-partition._
@@ -76,7 +76,7 @@ _Remember, for topics to be enable to join, data must  be co-partition._
    Select key first.
      
 # Sample Payload
-All the sample payload are located under `test/resources/sample-data` folder.
+All the sample payloads are located under `test/resources/sample-data` folder.
 
 # Expected Output
 The output will be a 'complete' employee information with department name and employment history under one record.
