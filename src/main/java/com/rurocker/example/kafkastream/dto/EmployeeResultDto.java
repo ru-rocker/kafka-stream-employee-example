@@ -3,7 +3,7 @@ package com.rurocker.example.kafkastream.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 public class EmployeeResultDto {
@@ -21,5 +21,5 @@ public class EmployeeResultDto {
     private String deptName;
 
     @JsonProperty("employment_history")
-    private List<String> employmentHistory;
+    private Set<String> employmentHistory;
 }
