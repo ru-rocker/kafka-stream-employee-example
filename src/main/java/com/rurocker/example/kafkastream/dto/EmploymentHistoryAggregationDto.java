@@ -3,12 +3,14 @@ package com.rurocker.example.kafkastream.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class EmploymentHistoryAggregationDto {
 
     private Integer empId;
-    private List<String> employmentHistory = new ArrayList<>();
+    private Set<String> employmentHistory = new HashSet<>();
 
     public Integer getEmpId() {
         return empId;
@@ -18,7 +20,7 @@ public class EmploymentHistoryAggregationDto {
         this.empId = empId;
     }
 
-    public List<String> getEmploymentHistory() {
+    public Set<String> getEmploymentHistory() {
         return employmentHistory;
     }
 

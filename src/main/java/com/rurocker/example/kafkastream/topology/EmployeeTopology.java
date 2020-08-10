@@ -7,10 +7,13 @@ import com.rurocker.example.kafkastream.dto.EmploymentHistoryAggregationDto;
 import com.rurocker.example.kafkastream.serde.MySerdesFactory;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
+import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
+import org.apache.kafka.streams.kstream.Grouped;
 import org.apache.kafka.streams.kstream.KTable;
 import org.apache.kafka.streams.kstream.Materialized;
+import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.state.KeyValueStore;
 
 public class EmployeeTopology {
@@ -20,20 +23,26 @@ public class EmployeeTopology {
         // select key then convert stream into table
         final KTable<Integer, DepartmentDto> deptTable =
                 builder.stream("DEPT",
-                    Consumed.with(Serdes.String(), MySerdesFactory.departmentSerde()))
-                        .selectKey((key, value) -> value.getDeptId())
-                        .toTable();
+                    Consumed.with(Serdes.Integer(), MySerdesFactory.departmentSerde()))
+                        .map((key, value) -> new KeyValue<>(value.getDeptId(), value))
+                        .toTable(Materialized.<Integer, DepartmentDto, KeyValueStore<Bytes, byte[]>>
+                            as("DEPT-MV")
+                                .withKeySerde(Serdes.Integer())
+                                .withValueSerde(MySerdesFactory.departmentSerde()));
 
         final KTable<Integer, EmployeeDto> empTable =
                 builder.stream("EMPLOYEE",
-                    Consumed.with(Serdes.String(), MySerdesFactory.employeeSerde()))
-                        .selectKey((key, value) -> value.getEmpId())
-                        .toTable();
+                    Consumed.with(Serdes.Integer(), MySerdesFactory.employeeSerde()))
+                        .map((key, value) -> new KeyValue<>(value.getEmpId(), value))
+                        .toTable(Materialized.<Integer, EmployeeDto, KeyValueStore<Bytes, byte[]>>
+                                as("EMPLOYEE-MV")
+                                .withKeySerde(Serdes.Integer())
+                                .withValueSerde(MySerdesFactory.employeeSerde()));
 
         // N:1 join -> EMPLOYEE and DEPARTMENT
         final KTable<Integer, EmployeeResultDto> empDeptTable = empTable.join(deptTable,
                 // foreignKeyExtractor. Get dept_id from employee and join with dept
-                (emp) -> emp.getDeptId(),
+                EmployeeDto::getDeptId,
                 // join emp and dept, return EmployeeDataDto
                 (emp, dept) -> {
                     EmployeeResultDto employeeResultDto = new EmployeeResultDto();
@@ -54,14 +63,16 @@ public class EmployeeTopology {
         // a. select emp_id as key, group by key (emp_id) then aggregate the result
         final KTable<Integer, EmploymentHistoryAggregationDto> employmentHistoryAggr =
                 builder.stream("EMPLOYMENT-HISTORY",
-                    Consumed.with(Serdes.String(), MySerdesFactory.employeeHistorySerde()))
-                .selectKey((key, value) -> value.getEmpHistId())
-                .groupByKey()
+                    Consumed.with(Serdes.Integer(), MySerdesFactory.employeeHistorySerde()))
+                .selectKey((key,empHist) -> empHist.getEmpId())
+                .groupByKey(Grouped.with(Serdes.Integer(), MySerdesFactory.employeeHistorySerde()))
                 .aggregate(
                         // Initialized Aggregator
                         EmploymentHistoryAggregationDto::new,
                         //Aggregate
                         (empId, empHist, empHistAggr) -> {
+                            empHistAggr.setEmpId(empId);
+                            empHistAggr.add(empHist.getEmployerName());
                             return empHistAggr;
                         },
                         // store in materialied view EMPLOYMENT-HIST-AGGR-MV
@@ -87,6 +98,9 @@ public class EmployeeTopology {
             );
 
         // store result to output topic EMP-RESULT
-        empDeptTable.toStream().to("EMP-RESULT");
+        empResultTable.toStream()
+                .map((key, value) -> new KeyValue<>(value.getEmpId(), value))
+                .peek((key,value) -> System.out.println("(empResultTable) key,value = " + key  + "," + value))
+                .to("EMP-RESULT", Produced.with(Serdes.Integer(), MySerdesFactory.employeeResultSerde()));
     }
 }
