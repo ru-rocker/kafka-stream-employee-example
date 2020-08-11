@@ -43,7 +43,7 @@ public class EmployeeTopology {
         final KTable<Integer, EmployeeResultDto> empDeptTable = empTable.join(deptTable,
                 // foreignKeyExtractor. Get dept_id from employee and join with dept
                 EmployeeDto::getDeptId,
-                // join emp and dept, return EmployeeDataDto
+                // join emp and dept, return EmployeeResultDto
                 (emp, dept) -> {
                     EmployeeResultDto employeeResultDto = new EmployeeResultDto();
                     employeeResultDto.setDeptId(dept.getDeptId());

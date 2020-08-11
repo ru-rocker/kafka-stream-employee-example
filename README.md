@@ -74,7 +74,11 @@ _Remember, for topics to be enable to join, data must  be co-partition._
         com.rurocker.example.kafkastream.topoplogy
 
    Select key first.
-     
+
+3. Main class
+
+        com.rurocker.example.kafkastream.main
+           
 # Sample Payload
 All the sample payloads are located under `test/resources/sample-data` folder.
 
