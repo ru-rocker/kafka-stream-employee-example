@@ -21,4 +21,20 @@ public class MySerdesFactory {
     public static EmployeeResultSerde employeeResultSerde() {
         return new EmployeeResultSerde();
     }
+
+    public static CCPaymentSerde ccPaymentSerde() {
+        return new CCPaymentSerde();
+    }
+
+    public static BankTransferPaymentSerde bankTransferPaymentSerde() {
+        return new BankTransferPaymentSerde();
+    }
+
+    public static PaymentSerde paymentSerde() {
+        return new PaymentSerde();
+    }
+
+    public static PaymentAggregationSerde paymentAggregationSerde() {
+        return new PaymentAggregationSerde();
+    }
 }

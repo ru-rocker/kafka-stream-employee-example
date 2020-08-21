@@ -1,6 +1,7 @@
 package com.rurocker.example.kafkastream.main;
 
 import com.rurocker.example.kafkastream.topology.EmployeeTopology;
+import com.rurocker.example.kafkastream.topology.PaymentTopology;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -31,8 +32,12 @@ public class MainClass {
         props.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 0);
 
         // create employee topology
-        EmployeeTopology employeeTopology = new EmployeeTopology();
-        employeeTopology.createTopology(builder);
+//        EmployeeTopology employeeTopology = new EmployeeTopology();
+//        employeeTopology.createTopology(builder);
+
+        // create payment topology
+        PaymentTopology paymentTopology = new PaymentTopology();
+        paymentTopology.createTopology(builder);
 
         // build topology
         final Topology topology = builder.build();
