@@ -7,7 +7,7 @@ import java.util.List;
 public class PaymentAggregationDto {
 
     private Integer customerId;
-    private List<PaymentDto> payments = new ArrayList<>(10);
+    private List<PaymentDto> payments = new ArrayList<>(6);
 
     public Integer getCustomerId() {
         return customerId;
@@ -28,8 +28,8 @@ public class PaymentAggregationDto {
         payments.add(dto);
 
         Collections.sort(this.payments, (o1, o2) -> o2.getTrxDate().compareTo(o1.getTrxDate()));
-        if(payments.size() > 10) {
-            payments.remove(10);
+        if(payments.size() > 5) {
+            payments.remove(5);
         }
     }
 }
