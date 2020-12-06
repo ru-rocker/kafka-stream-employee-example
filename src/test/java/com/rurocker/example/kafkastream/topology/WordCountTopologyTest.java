@@ -87,6 +87,8 @@ public class WordCountTopologyTest {
             result.put(kv.key, kv.value);
         }
         assertThat(result).containsExactlyInAnyOrderEntriesOf(expected);
+
+        assertThat(wordCountOutput.isEmpty()).isTrue();
     }
 
     @AfterEach
