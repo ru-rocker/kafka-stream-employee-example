@@ -64,6 +64,7 @@ public class WordCountTopologyTest {
         String text2 = "Kafka streams is great";
         String text3 = "Welcome back";
 
+        // expected output
         Map<String,Long> expected = Map.of(
                 "welcome", 2L,
                 "to", 1L,
@@ -80,6 +81,7 @@ public class WordCountTopologyTest {
 
         assertThat(wordCountOutput.isEmpty()).isFalse();
 
+        // result
         Map<String, Long> result = new HashMap<>();
         while(!wordCountOutput.isEmpty()) {
             final KeyValue<String, Long> kv = wordCountOutput.readKeyValue();
