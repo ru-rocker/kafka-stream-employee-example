@@ -84,10 +84,12 @@ public class EmployeeTopology {
 
         // b. join with EMP-DEPT. Since the key is already identical, which is EMP_ID, no need FK Extractor
         final KTable<Integer, EmployeeResultDto> empResultTable =
-            empDeptTable.join(employmentHistoryAggr,
+            empDeptTable.leftJoin(employmentHistoryAggr,
                 // Value Joiner
                 (empResult, histAggr) -> {
-                    empResult.setEmploymentHistory(histAggr.getEmploymentHistory());
+                    if(histAggr != null) {
+                        empResult.setEmploymentHistory(histAggr.getEmploymentHistory());
+                    }
                     return empResult;
                 },
                 // store in materialied view EMP-RESULT-MV
