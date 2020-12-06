@@ -21,4 +21,9 @@ public class MySerdesFactory {
     public static EmployeeResultSerde employeeResultSerde() {
         return new EmployeeResultSerde();
     }
+
+    public static AuctionSerde auctionSerde() {
+        return new AuctionSerde();
+    }
+
 }
