@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.function.BiConsumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
