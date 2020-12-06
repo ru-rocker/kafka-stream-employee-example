@@ -28,7 +28,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author Ricky Martaputra
+ * @author ru-rocker
  * Created on 06-Dec-2020 4:40 PM
  */
 public class EmployeeTopologyTest {
@@ -89,7 +89,7 @@ public class EmployeeTopologyTest {
                 .deptId(1)
                 .build();
 
-        // expeceted output
+        // expected output
         EmployeeResultDto expected = new EmployeeResultDto();
         expected.setDeptId(1);
         expected.setDeptName("Finance");
@@ -118,7 +118,7 @@ public class EmployeeTopologyTest {
 
     @Test
     @DisplayName("Test Employee Topology between department and employee, include employment history")
-    public void testEmployeeAggregationTopologyWithEmployementHistory() {
+    public void testEmployeeAggregationTopologyWithEmploymentHistory() {
 
         // Finance Department
         DepartmentDto financeDept = DepartmentDto.builder()
@@ -147,7 +147,7 @@ public class EmployeeTopologyTest {
                 .employerName("Company B")
                 .build();
 
-        // expeceted output
+        // expected output
         EmployeeResultDto expected = new EmployeeResultDto();
         expected.setDeptId(1);
         expected.setDeptName("Finance");
