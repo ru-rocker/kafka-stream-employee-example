@@ -30,9 +30,7 @@ public class WordCountTimeWindowsTopology {
                 .windowedBy(TimeWindows.of(Duration.ofMinutes(5)).advanceBy(Duration.ofMinutes(5)))
                 .count(Materialized.as("WordCount"))
                 .toStream()
-                .peek((key,value) -> System.out.println("(Windows) key,value = " + key.window()  + "," + value))
                 .map((key, value) -> new KeyValue<>(key.key(),value))
-                .peek((key,value) -> System.out.println("(Word) key,value = " + key  + "," + value))
                 .to("streams-wordcount-output",
                         Produced.with(Serdes.String(), Serdes.Long()));
     }
