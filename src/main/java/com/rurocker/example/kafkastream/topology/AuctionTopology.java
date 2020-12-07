@@ -33,14 +33,18 @@ public class AuctionTopology {
 
         topology.addSource("source", Serdes.String().deserializer(),
                 MySerdesFactory.auctionSerde().deserializer(), "auction-bid-input");
+
+        // topology for standard auction processor
         topology.addProcessor("proc", AuctionProcessor::new, "source");
         topology.addStateStore(auctionKeyStore, "proc");
         topology.addSink("sink", "auction-bid-output", "proc");
 
+        // topology for stream time punctuator auction processor
         topology.addProcessor("proc-stream-time", AuctionWithScheduleStreamTimeProcessor::new, "source");
         topology.addStateStore(auctionStreamTimeKeyStore, "proc-stream-time");
         topology.addSink("sink-stream-time", "auction-bid-stream-time-output", "proc-stream-time");
 
+        // topology for wall clock punctuator auction processor
         topology.addProcessor("proc-wall-clock", AuctionWithScheduleWallClockProcessor::new, "source");
         topology.addStateStore(auctionWallClockKeyStore, "proc-wall-clock");
         topology.addSink("sink-wall-clock", "auction-bid-wall-clock-output", "proc-wall-clock");
