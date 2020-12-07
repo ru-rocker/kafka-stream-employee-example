@@ -74,7 +74,7 @@ public class EmployeeTopologyTest {
 
     @Test
     @DisplayName("Test Employee Topology between department and employee, exclude employment history")
-    public void testEmployeeAggregationTopology() {
+    public void testEmployeeAggregationTopologyWithoutEmploymentHistory() {
 
         // Finance Department
         DepartmentDto financeDept = DepartmentDto.builder()
