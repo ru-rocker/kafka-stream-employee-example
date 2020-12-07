@@ -1,9 +1,6 @@
 # Overview
 Example of joining Kafka Stream with 1:N and N:1 use case.
 
-## Branch : test
-Example on how to unit test kafka streams.
-
 # Maven Dependencies
 ### Kafka Stream 
 
