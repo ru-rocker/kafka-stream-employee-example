@@ -1,13 +1,9 @@
 package com.rurocker.example.kafkastream.bdd;
 
 import io.cucumber.java8.En;
-import io.cucumber.java8.HookBody;
-import io.cucumber.java8.Scenario;
 import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;
 
-import org.assertj.core.api.Assertions;
-import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         plugin = { "pretty" })
 public class FraudDetectionStepDef implements En {
 
-    private Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public FraudDetectionStepDef() {
 
@@ -37,6 +33,7 @@ public class FraudDetectionStepDef implements En {
         Given("^Customer has a credit card with account number \"([^\"]*)\"$", (String cc) -> {
             logger.info("Credit card no {}", cc);
         });
+
         When("Customer transacts ${double} at {string}", (Double amount, String iso8601str) -> {
             Instant date = Instant.parse(iso8601str);
             logger.info("Transaction with amount {} and event-date {}", amount, date);
@@ -46,6 +43,8 @@ public class FraudDetectionStepDef implements En {
             logger.info("Fraud flag is {}", flag);
             assertThat(false).isTrue();
         });
+
+        After(scenario -> tear());
     }
 
     private void init() {
@@ -55,5 +54,8 @@ public class FraudDetectionStepDef implements En {
         System.out.println("before each");
     }
 
+    private void tear() {
+
+    }
 
 }
