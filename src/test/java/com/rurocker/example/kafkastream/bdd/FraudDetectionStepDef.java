@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,14 +47,11 @@ public class FraudDetectionStepDef implements En {
     }
 
     private void init() {
-        System.out.println("Instant.now() = " + Instant.now());
-        System.out.println("new Date() = " + new Date());
-        System.out.println("Date.from(Instant.now()) = " + Date.from(Instant.now()));
-        System.out.println("before each");
+        System.out.println("init");
     }
 
     private void tear() {
-
+        System.out.println("tear");
     }
 
 }
