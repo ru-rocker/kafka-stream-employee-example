@@ -34,7 +34,7 @@ public class MyJsonSerializer<T> implements Serializer<T> {
     @Override
     public byte[] serialize(final String topic, final T objectToSerialize) {
         if (objectToSerialize == null) {
-            return new byte[0];
+            return null;
         }
 
         try {
