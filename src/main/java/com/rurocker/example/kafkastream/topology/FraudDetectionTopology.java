@@ -1,5 +1,7 @@
 package com.rurocker.example.kafkastream.topology;
 
+import org.apache.kafka.streams.StreamsBuilder;
+
 /**
  * This is an example to detect if a credit card transactions exceed
  * certain limit during specific period.
@@ -8,10 +10,14 @@ package com.rurocker.example.kafkastream.topology;
  * As a credit card owner with number XXX, I want to be notified if my transactions
  * exceed $1000 in the 5 minutes duration.
  *
+ * See gerkhin files in features/credit-card-fraud-detection.feature for more details.
+ *
  * @author ru-rocker
  * Created on 06-Dec-2020 7:21 PM
  */
 public class FraudDetectionTopology {
 
-    // TODO: later
+    public void createTopology(StreamsBuilder builder) {
+        // TODO: later
+    }
 }
