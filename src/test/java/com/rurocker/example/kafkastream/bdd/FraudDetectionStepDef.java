@@ -28,7 +28,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.Random;
@@ -36,7 +35,7 @@ import java.util.Random;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author Ricky Martaputra
+ * @author ru-rocker
  * Created on 10-Dec-2020 3:23 PM
  */
 @RunWith(Cucumber.class)
@@ -84,22 +83,23 @@ public class FraudDetectionStepDef implements En {
             if(kv != null) {
                 assertThat(kv.key).isEqualTo(topicKey);
                 fraudDetectionDto = kv.value;
+                assertThat(fraudDetectionDto.getFraudFlag()).isEqualTo(flag);
             } else {
-                fraudDetectionDto = CreditCardFraudDetectionDto.builder()
-                        .fraudFlag("N")
-                        .suspiciousTransactions(List.of())
-                        .build();
+                assertThat(flag).isNullOrEmpty();
             }
-            assertThat(fraudDetectionDto.getFraudFlag()).isEqualTo(flag);
         });
 
-        And("the suspicious amount is ${double}", (Double suspicious) -> {
+        And("total suspicious amount is ${double}", (Double suspicious) -> {
             logger.info("suspicious amount is {}", suspicious);
-            final List<CreditCardTransactionDto> list = fraudDetectionDto.getSuspiciousTransactions();
-            final BigDecimal total = list.stream()
-                    .map(value -> BigDecimal.valueOf(value.getTrxAmount()))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            assertThat(total.doubleValue()).isEqualTo(suspicious);
+            if(fraudDetectionDto != null) {
+                final List<CreditCardTransactionDto> list = fraudDetectionDto.getSuspiciousTransactions();
+                final BigDecimal total = list.stream()
+                        .map(value -> BigDecimal.valueOf(value.getTrxAmount()))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                assertThat(total.doubleValue()).isEqualTo(suspicious);
+            } else {
+                assertThat(suspicious).isEqualTo(0.0);
+            }
         });
 
         After(scenario -> tear());
