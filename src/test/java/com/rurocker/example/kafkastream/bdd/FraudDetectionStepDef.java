@@ -43,6 +43,10 @@ public class FraudDetectionStepDef implements En {
             assertThat(false).isTrue();
         });
 
+        And("the suspicious amount is ${double}", (Double suspicious) -> {
+            logger.info("suspicious amount is {}", suspicious);
+        });
+
         After(scenario -> tear());
     }
 
