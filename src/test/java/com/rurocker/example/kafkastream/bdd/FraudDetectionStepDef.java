@@ -106,13 +106,6 @@ public class FraudDetectionStepDef implements En {
     }
 
     private void init() {
-        LocalDateTime localDate = LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC);
-        System.out.println("localDate = " + localDate);
-        Date date = Date.from(localDate.toInstant(ZoneOffset.UTC));
-        System.out.println("date = " + date);
-        System.out.println("new Date() = " + new Date());
-        System.out.println("init");
-
         final Properties props = new Properties();
         props.put(StreamsConfig.APPLICATION_ID_CONFIG, "app-id");
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "dummy:1234");
