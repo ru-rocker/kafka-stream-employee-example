@@ -34,4 +34,8 @@ public class MySerdesFactory {
         return new CreditCardFraudDetectionSerde();
     }
 
+    public static CreditCardTransactionAggregationSerde creditCardTransactionAggregationSerde() {
+        return new CreditCardTransactionAggregationSerde();
+    }
+
 }
