@@ -28,9 +28,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.List;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -92,7 +92,7 @@ public class FraudDetectionStepDef implements En {
         And("total suspicious amount is ${double}", (Double suspicious) -> {
             logger.info("suspicious amount is {}", suspicious);
             if(fraudDetectionDto != null) {
-                final List<CreditCardTransactionDto> list = fraudDetectionDto.getSuspiciousTransactions();
+                final Set<CreditCardTransactionDto> list = fraudDetectionDto.getSuspiciousTransactions();
                 final BigDecimal total = list.stream()
                         .map(value -> BigDecimal.valueOf(value.getTrxAmount()))
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
