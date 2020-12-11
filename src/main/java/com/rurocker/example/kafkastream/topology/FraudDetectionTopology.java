@@ -3,19 +3,25 @@ package com.rurocker.example.kafkastream.topology;
 import com.rurocker.example.kafkastream.dto.CreditCardFraudDetectionDto;
 import com.rurocker.example.kafkastream.dto.CreditCardTransactionAggregationDto;
 import com.rurocker.example.kafkastream.dto.CreditCardTransactionDto;
+import com.rurocker.example.kafkastream.serde.CreditCardFraudDetectionSerde;
 import com.rurocker.example.kafkastream.serde.CreditCardTransactionSerde;
 import com.rurocker.example.kafkastream.serde.MySerdesFactory;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.Serde;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.kstream.Consumed;
 import org.apache.kafka.streams.kstream.Grouped;
+import org.apache.kafka.streams.kstream.JoinWindows;
+import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.kstream.SessionWindows;
+import org.apache.kafka.streams.kstream.StreamJoined;
 import org.apache.kafka.streams.kstream.TimeWindows;
+import org.apache.kafka.streams.kstream.ValueJoiner;
 
 import java.time.Duration;
 import java.util.HashSet;
@@ -49,10 +55,12 @@ public class FraudDetectionTopology {
         final Double sessionWindowThreshold = 4000.0;
 
         final Serde<String> keySerde = Serdes.String();
-        final CreditCardTransactionSerde valueSerde = MySerdesFactory.creditCardTransactionSerde();
+        final CreditCardTransactionSerde creditCardTransactionSerde = MySerdesFactory.creditCardTransactionSerde();
+        final CreditCardFraudDetectionSerde creditCardFraudDetectionSerde =
+                MySerdesFactory.creditCardFraudDetectionSerde();
 
         final KStream<String, CreditCardTransactionDto> input =
-                builder.stream(CREDIT_CARD_TRANSACTION_INPUT, Consumed.with(keySerde, valueSerde));
+                builder.stream(CREDIT_CARD_TRANSACTION_INPUT, Consumed.with(keySerde, creditCardTransactionSerde));
 
         // single
         input.filter((key, value) -> singleThreshold.compareTo(value.getTrxAmount()) < 0)
@@ -61,10 +69,10 @@ public class FraudDetectionTopology {
                     .suspiciousTransactions(Set.of(value))
                     .build())
             .to(SINGLE_TRANSACTION_FRAUD_DETECTION_RESULT,
-                    Produced.with(keySerde, MySerdesFactory.creditCardFraudDetectionSerde()));
+                    Produced.with(keySerde, creditCardFraudDetectionSerde));
 
         // hopping-windows
-        input.groupByKey(Grouped.with(keySerde, valueSerde))
+        input.groupByKey(Grouped.with(keySerde, creditCardTransactionSerde))
             .windowedBy(TimeWindows.of(Duration.ofMinutes(5)).advanceBy(Duration.ofMinutes(1)))
             .aggregate(() -> CreditCardTransactionAggregationDto.builder().ongoingTransactions(Set.of()).build(),
                     (key, value, aggr) -> {
@@ -85,10 +93,10 @@ public class FraudDetectionTopology {
             .filter((key, value) -> value != null)
             .map((key,value) -> new KeyValue<>(key.key(), value))
             .to(HOPPING_WINDOWS_TRANSACTION_FRAUD_DETECTION_RESULT,
-                    Produced.with(keySerde, MySerdesFactory.creditCardFraudDetectionSerde()));
+                    Produced.with(keySerde, creditCardFraudDetectionSerde));
 
         // session-windows
-        input.groupByKey(Grouped.with(keySerde, valueSerde))
+        input.groupByKey(Grouped.with(keySerde, creditCardTransactionSerde))
                 .windowedBy(SessionWindows.with(Duration.ofHours(1)))
                 .aggregate(() -> CreditCardTransactionAggregationDto.builder().ongoingTransactions(Set.of()).build(),
                         (key, value, aggr) -> {
@@ -116,9 +124,52 @@ public class FraudDetectionTopology {
                 .filter((key, value) -> value != null)
                 .map((key,value) -> new KeyValue<>(key.key(), value))
                 .to(SESSION_WINDOWS_TRANSACTION_FRAUD_DETECTION_RESULT,
-                        Produced.with(keySerde, MySerdesFactory.creditCardFraudDetectionSerde()));
+                        Produced.with(keySerde, creditCardFraudDetectionSerde));
 
 
         //TODO outer join to output
+        final KStream<String, CreditCardFraudDetectionDto> single =
+            builder.stream(SINGLE_TRANSACTION_FRAUD_DETECTION_RESULT,
+                Consumed.with(keySerde, creditCardFraudDetectionSerde));
+
+        final KStream<String, CreditCardFraudDetectionDto> hopping =
+            builder.stream(HOPPING_WINDOWS_TRANSACTION_FRAUD_DETECTION_RESULT,
+                Consumed.with(keySerde, creditCardFraudDetectionSerde));
+
+        final KStream<String, CreditCardFraudDetectionDto> session =
+                builder.stream(SESSION_WINDOWS_TRANSACTION_FRAUD_DETECTION_RESULT,
+                        Consumed.with(keySerde, creditCardFraudDetectionSerde));
+
+        // always suspicious trx going into these joins
+        single.outerJoin(hopping,
+                valueJoiner(),
+                JoinWindows.of(Duration.ofSeconds(1)),
+                StreamJoined.with(keySerde, creditCardFraudDetectionSerde, creditCardFraudDetectionSerde))
+            .outerJoin(session,
+                valueJoiner(),
+                JoinWindows.of(Duration.ofSeconds(1)),
+                StreamJoined.with(keySerde, creditCardFraudDetectionSerde, creditCardFraudDetectionSerde))
+            .peek((key, value) -> System.out.println("value = " + value))
+            .to(CREDIT_CARD_FRAUD_DETECTION_OUTPUT,
+                    Produced.with(keySerde, creditCardFraudDetectionSerde));
+
+    }
+
+    private ValueJoiner<CreditCardFraudDetectionDto, CreditCardFraudDetectionDto,
+            CreditCardFraudDetectionDto> valueJoiner() {
+
+        return (v1, v2) -> {
+            Set<CreditCardTransactionDto> result = new HashSet<>();
+            if (v1 != null && v1.getFraudFlag().equals("Y")) {
+                result.addAll(v1.getSuspiciousTransactions());
+            }
+            if (v2 != null && v2.getFraudFlag().equals("Y")) {
+                result.addAll(v2.getSuspiciousTransactions());
+            }
+            return CreditCardFraudDetectionDto.builder()
+                    .fraudFlag("Y")
+                    .suspiciousTransactions(result)
+                    .build();
+        };
     }
 }
