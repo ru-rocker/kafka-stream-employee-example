@@ -10,6 +10,7 @@ import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author ru-rocker
@@ -23,7 +24,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CreditCardTransactionAggregationDto {
 
-    private final List<CreditCardTransactionDto> ongoingTransactions;
+    private final Set<CreditCardTransactionDto> ongoingTransactions;
 
     public Double sumOngoingTransactions() {
         return ongoingTransactions.stream()

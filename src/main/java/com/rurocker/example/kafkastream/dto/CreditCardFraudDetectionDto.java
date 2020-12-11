@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.ToString;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author ru-rocker
@@ -23,7 +24,7 @@ import java.util.List;
 public class CreditCardFraudDetectionDto {
 
     private final String fraudFlag;
-    private final List<CreditCardTransactionDto> suspiciousTransactions;
+    private final Set<CreditCardTransactionDto> suspiciousTransactions;
 
     @JsonPOJOBuilder(withPrefix = "")
     @JsonIgnoreProperties(ignoreUnknown = true)
