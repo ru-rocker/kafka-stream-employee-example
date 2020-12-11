@@ -26,7 +26,7 @@ public class CreditCardTransactionDto {
     private final Integer trxId;
     private final String creditCardNo;
     private final String creditCardHolder;
-    private final String merchantId;
+    private final Integer merchantId;
     private final Double trxAmount;
 
     @JsonFormat(timezone = "UTC", pattern = "yyyy-MM-dd'T'HH:mm:ss")
