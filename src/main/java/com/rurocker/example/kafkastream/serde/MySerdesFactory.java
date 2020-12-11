@@ -26,4 +26,12 @@ public class MySerdesFactory {
         return new AuctionSerde();
     }
 
+    public static CreditCardTransactionSerde creditCardTransactionSerde() {
+        return new CreditCardTransactionSerde();
+    }
+
+    public static CreditCardFraudDetectionSerde creditCardFraudDetectionSerde() {
+        return new CreditCardFraudDetectionSerde();
+    }
+
 }
