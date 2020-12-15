@@ -82,6 +82,24 @@ Example of joining Kafka Stream with 1:N and N:1 use case.
             <version>1.6.2</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java8</artifactId>
+            <version>6.8.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit</artifactId>
+            <version>6.8.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.6.2</version>
+            <scope>test</scope>
+        </dependency>
 
 # Create Kafka Topic
 Since this is a local setup, the partition and replication factor is set into 1.
@@ -94,6 +112,8 @@ _Remember, for topics to be enable to join, data must  be co-partition._
         kafka-topics --zookeeper localhost:2181 --topic EMPLOYEE --create --replication-factor 1 --partitions 1
         kafka-topics --zookeeper localhost:2181 --topic EMPLOYMENT-HISTORY --create --replication-factor 1 --partitions 1
         kafka-topics --zookeeper localhost:2181 --topic EMP-RESULT --create --replication-factor 1 --partitions 1
+        kafka-topics --zookeeper localhost:2181 --topic credit-card-transaction-input --create --replication-factor 1 --partitions 1
+        kafka-topics --zookeeper localhost:2181 --topic credit-card-fraud-detection-output --create --replication-factor 1 --partitions 1
         
 
 # Coding steps
@@ -133,3 +153,6 @@ The output will be a 'complete' employee information with department name and em
               "DEF"
           ]
       }
+
+# Miscellaneous
+For testing example, I do not provide the sample data. Sorry :)
