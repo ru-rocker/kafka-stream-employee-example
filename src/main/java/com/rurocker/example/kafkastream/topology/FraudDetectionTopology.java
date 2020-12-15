@@ -43,9 +43,6 @@ import java.util.Set;
 public class FraudDetectionTopology {
 
     public static final String CREDIT_CARD_TRANSACTION_INPUT = "credit-card-transaction-input";
-    public static final String SINGLE_TRANSACTION_FRAUD_DETECTION_RESULT = "single-transaction-fraud-detection-result";
-    public static final String HOPPING_WINDOWS_TRANSACTION_FRAUD_DETECTION_RESULT = "hopping-windows-transaction-fraud-detection-result";
-    public static final String SESSION_WINDOWS_TRANSACTION_FRAUD_DETECTION_RESULT = "session-windows-transaction-fraud-detection-result";
     public static final String CREDIT_CARD_FRAUD_DETECTION_OUTPUT = "credit-card-fraud-detection-output";
 
     public void createTopology(StreamsBuilder builder) {
