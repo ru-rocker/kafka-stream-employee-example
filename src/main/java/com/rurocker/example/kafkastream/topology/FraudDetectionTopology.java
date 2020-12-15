@@ -63,82 +63,65 @@ public class FraudDetectionTopology {
                 builder.stream(CREDIT_CARD_TRANSACTION_INPUT, Consumed.with(keySerde, creditCardTransactionSerde));
 
         // single
-        input.filter((key, value) -> singleThreshold.compareTo(value.getTrxAmount()) < 0)
-            .mapValues(value -> CreditCardFraudDetectionDto.builder()
+        final KStream<String, CreditCardFraudDetectionDto> single =
+            input.filter((key, value) -> singleThreshold.compareTo(value.getTrxAmount()) < 0)
+                .mapValues(value -> CreditCardFraudDetectionDto.builder()
                     .fraudFlag("Y")
                     .suspiciousTransactions(Set.of(value))
-                    .build())
-            .to(SINGLE_TRANSACTION_FRAUD_DETECTION_RESULT,
-                    Produced.with(keySerde, creditCardFraudDetectionSerde));
+                    .build());
 
         // hopping-windows
-        input.groupByKey(Grouped.with(keySerde, creditCardTransactionSerde))
-            .windowedBy(TimeWindows.of(Duration.ofMinutes(5)).advanceBy(Duration.ofMinutes(1)))
-            .aggregate(() -> CreditCardTransactionAggregationDto.builder().ongoingTransactions(Set.of()).build(),
-                    (key, value, aggr) -> {
-                        final Set<CreditCardTransactionDto> current = aggr.getOngoingTransactions();
-                        Set<CreditCardTransactionDto> set = new HashSet<>(current);
-                        set.add(value);
-                        return aggr.toBuilder()
-                                .ongoingTransactions(set)
-                                .build();
-                    },
-                    Materialized.with(keySerde, MySerdesFactory.creditCardTransactionAggregationSerde()))
-            .toStream()
-            .filter((key, value) -> hoppingWindowThreshold.compareTo(value.sumOngoingTransactions()) < 0)
-            .mapValues(value -> CreditCardFraudDetectionDto.builder()
-                    .fraudFlag("Y")
-                    .suspiciousTransactions(value.getOngoingTransactions())
-                    .build())
-            .filter((key, value) -> value != null)
-            .map((key,value) -> new KeyValue<>(key.key(), value))
-            .to(HOPPING_WINDOWS_TRANSACTION_FRAUD_DETECTION_RESULT,
-                    Produced.with(keySerde, creditCardFraudDetectionSerde));
+        final KStream<String, CreditCardFraudDetectionDto> hopping =
+                input.groupByKey(Grouped.with(keySerde, creditCardTransactionSerde))
+                    .windowedBy(TimeWindows.of(Duration.ofMinutes(5)).advanceBy(Duration.ofMinutes(1)))
+                    .aggregate(() -> CreditCardTransactionAggregationDto.builder().ongoingTransactions(Set.of()).build(),
+                            (key, value, aggr) -> {
+                                final Set<CreditCardTransactionDto> current = aggr.getOngoingTransactions();
+                                Set<CreditCardTransactionDto> set = new HashSet<>(current);
+                                set.add(value);
+                                return aggr.toBuilder()
+                                        .ongoingTransactions(set)
+                                        .build();
+                            },
+                            Materialized.with(keySerde, MySerdesFactory.creditCardTransactionAggregationSerde()))
+                    .toStream()
+                    .filter((key, value) -> hoppingWindowThreshold.compareTo(value.sumOngoingTransactions()) < 0)
+                    .mapValues(value -> CreditCardFraudDetectionDto.builder()
+                            .fraudFlag("Y")
+                            .suspiciousTransactions(value.getOngoingTransactions())
+                            .build())
+                    .filter((key, value) -> value != null)
+                    .map((key,value) -> new KeyValue<>(key.key(), value));
 
         // session-windows
-        input.groupByKey(Grouped.with(keySerde, creditCardTransactionSerde))
-                .windowedBy(SessionWindows.with(Duration.ofHours(1)))
-                .aggregate(() -> CreditCardTransactionAggregationDto.builder().ongoingTransactions(Set.of()).build(),
-                        (key, value, aggr) -> {
-                            final Set<CreditCardTransactionDto> current = aggr.getOngoingTransactions();
-                            Set<CreditCardTransactionDto> set = new HashSet<>(current);
-                            set.add(value);
-                            return aggr.toBuilder()
-                                    .ongoingTransactions(set)
-                                    .build();
-                        },
-                        (key, aggOne, aggTwo) -> {
-                            final Set<CreditCardTransactionDto> ongoing1 = aggOne.getOngoingTransactions();
-                            final Set<CreditCardTransactionDto> ongoing2 = aggTwo.getOngoingTransactions();
-                            Set<CreditCardTransactionDto> set = new HashSet<>(ongoing1);
-                            set.addAll(ongoing2);
-                            return aggOne.toBuilder().ongoingTransactions(set).build();
-                        },
-                        Materialized.with(keySerde, MySerdesFactory.creditCardTransactionAggregationSerde()))
-                .toStream()
-                .filter((key, value) -> sessionWindowThreshold.compareTo(value.sumOngoingTransactions()) < 0)
-                .mapValues(value -> CreditCardFraudDetectionDto.builder()
-                        .fraudFlag("Y")
-                        .suspiciousTransactions(value.getOngoingTransactions())
-                        .build())
-                .filter((key, value) -> value != null)
-                .map((key,value) -> new KeyValue<>(key.key(), value))
-                .to(SESSION_WINDOWS_TRANSACTION_FRAUD_DETECTION_RESULT,
-                        Produced.with(keySerde, creditCardFraudDetectionSerde));
-
-
-        //TODO outer join to output
-        final KStream<String, CreditCardFraudDetectionDto> single =
-            builder.stream(SINGLE_TRANSACTION_FRAUD_DETECTION_RESULT,
-                Consumed.with(keySerde, creditCardFraudDetectionSerde));
-
-        final KStream<String, CreditCardFraudDetectionDto> hopping =
-            builder.stream(HOPPING_WINDOWS_TRANSACTION_FRAUD_DETECTION_RESULT,
-                Consumed.with(keySerde, creditCardFraudDetectionSerde));
-
         final KStream<String, CreditCardFraudDetectionDto> session =
-                builder.stream(SESSION_WINDOWS_TRANSACTION_FRAUD_DETECTION_RESULT,
-                        Consumed.with(keySerde, creditCardFraudDetectionSerde));
+                input.groupByKey(Grouped.with(keySerde, creditCardTransactionSerde))
+                    .windowedBy(SessionWindows.with(Duration.ofHours(1)))
+                    .aggregate(() -> CreditCardTransactionAggregationDto.builder().ongoingTransactions(Set.of()).build(),
+                            (key, value, aggr) -> {
+                                final Set<CreditCardTransactionDto> current = aggr.getOngoingTransactions();
+                                Set<CreditCardTransactionDto> set = new HashSet<>(current);
+                                set.add(value);
+                                return aggr.toBuilder()
+                                        .ongoingTransactions(set)
+                                        .build();
+                            },
+                            (key, aggOne, aggTwo) -> {
+                                final Set<CreditCardTransactionDto> ongoing1 = aggOne.getOngoingTransactions();
+                                final Set<CreditCardTransactionDto> ongoing2 = aggTwo.getOngoingTransactions();
+                                Set<CreditCardTransactionDto> set = new HashSet<>(ongoing1);
+                                set.addAll(ongoing2);
+                                return aggOne.toBuilder().ongoingTransactions(set).build();
+                            },
+                            Materialized.with(keySerde, MySerdesFactory.creditCardTransactionAggregationSerde()))
+                    .toStream()
+                    .filter((key, value) -> sessionWindowThreshold.compareTo(value.sumOngoingTransactions()) < 0)
+                    .mapValues(value -> CreditCardFraudDetectionDto.builder()
+                            .fraudFlag("Y")
+                            .suspiciousTransactions(value.getOngoingTransactions())
+                            .build())
+                    .filter((key, value) -> value != null)
+                    .map((key,value) -> new KeyValue<>(key.key(), value));
 
         // always suspicious trx going into these joins
         single.outerJoin(hopping,
@@ -149,7 +132,6 @@ public class FraudDetectionTopology {
                 valueJoiner(),
                 JoinWindows.of(Duration.ofSeconds(1)),
                 StreamJoined.with(keySerde, creditCardFraudDetectionSerde, creditCardFraudDetectionSerde))
-            .peek((key, value) -> System.out.println("value = " + value))
             .to(CREDIT_CARD_FRAUD_DETECTION_OUTPUT,
                     Produced.with(keySerde, creditCardFraudDetectionSerde));
 
