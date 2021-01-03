@@ -118,7 +118,7 @@ public class FraudDetectionTopology {
                     .filter((key, value) -> value != null)
                     .map((key,value) -> new KeyValue<>(key.key(), value));
 
-        // always suspicious trx going into these joins
+        // suspicious trx always goes into these joins
         single.outerJoin(hopping,
                 valueJoiner(),
                 JoinWindows.of(Duration.ofSeconds(1)),
